@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  camunda:
+    image: camunda/camunda-bpm-platform:latest
+    container_name: camunda
+    ports:
+      - "8080:8080"
+    environment:
+      DB_DRIVER: org.postgresql.Driver
+      DB_URL: jdbc:postgresql://db:5432/camunda
+      DB_USERNAME: camunda
+      DB_PASSWORD: camunda
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_USER: camunda
+      POSTGRES_PASSWORD: camunda
+      POSTGRES_DB: camunda
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    ports:
+      - "3001:3001"
+    environment:
+      - CAMUNDA_URL=http://camunda:8080/engine-rest
+      - PHP_ENDPOINT=http://localhost/get_events_info.php
+    depends_on:
+      - camunda
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_BACKEND_URL=http://backend:3001
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

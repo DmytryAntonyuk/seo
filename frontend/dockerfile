@@ -1,0 +1,15 @@
+# Используем Node.js образ
+FROM node:20
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем файлы проекта
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Открываем порт и запускаем проект
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
